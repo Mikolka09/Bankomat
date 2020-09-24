@@ -79,7 +79,7 @@ namespace Bankomat
             Account acc = EnterAcc();
             if (acc != null)
                 EnterPIN(acc);
-          else
+            else
             {
 
             }
@@ -154,7 +154,6 @@ namespace Bankomat
                     break;
                 case 2:
                     return;
-                    break;
                 default:
                     break;
             }
