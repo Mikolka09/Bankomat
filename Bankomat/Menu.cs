@@ -40,7 +40,7 @@ namespace Bankomat
                     }
                     Console.Write(elements[i].PadRight(maxLen));
                 }
-
+                 
                 ConsoleKey consoleKey = Console.ReadKey().Key;
                 switch (consoleKey)
                 {
@@ -62,13 +62,14 @@ namespace Bankomat
                     case ConsoleKey.DownArrow:
                         if (pos < elements.Length - 1)
                             pos++;
+                        
                         break;
 
                     default:
                         break;
                 }
 
-
+               
             }
         }
 
