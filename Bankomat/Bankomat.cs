@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Bankomat
@@ -33,6 +34,7 @@ namespace Bankomat
                         bankomat.MainMenu(bank);
                         break;
                     case 2:
+                        return;
                         break;
                     default:
                         break;
@@ -60,7 +62,14 @@ namespace Bankomat
 
         Account checkAcc(int numAcc)
         {
-            return bank.checkAcc(numAcc);
+            if (bank.checkAcc(numAcc) == null)
+            {
+                Console.WriteLine("Такого номера счета нет! Попробуйте еще раз!");
+                Thread.Sleep(2000);
+                return null;
+            }
+            else
+                return bank.checkAcc(numAcc);
         }
 
         public bool EnterPIN(Account acc)
@@ -78,11 +87,31 @@ namespace Bankomat
 
             Account acc = EnterAcc();
             if (acc != null)
-                EnterPIN(acc);
+            {
+                int Count = 0;
+                bool p = true;
+                while (p)
+                {
+                    if (Count == 3)
+                    {
+                        Console.WriteLine("Использовано все три попытки!");
+                        Thread.Sleep(2000);
+                        return;
+                    }
+                    else if (EnterPIN(acc))
+                        p = false;
+                    else
+                    {
+                        p = true;
+                        Count++;
+                    }
+                }
+            }
             else
             {
-
+                return;
             }
+
             while (true)
             {
                 Console.Clear();
@@ -102,7 +131,6 @@ namespace Bankomat
                         break;
                     case 3:
                         return;
-
                     default:
                         break;
                 }
@@ -140,6 +168,24 @@ namespace Bankomat
             Console.Read();
         }
 
+        public void DellAccount()
+        {
+            Console.WriteLine("Введите номер счет для закрытия: ");
+            int acc = int.Parse(Console.ReadLine());
+            for (int i = 0; i < accounts.Length; i++)
+            {
+                if (accounts[i].Acc == acc)
+                {
+                    accounts[i] = null;
+                    Console.WriteLine("Номер счета закрыт!!!");
+                }
+                else
+                {
+                    Console.WriteLine("Такого счет нет!!!");
+                }
+            }
+        }
+
         public void MainMenu()
         {
             Console.Clear();
@@ -150,7 +196,7 @@ namespace Bankomat
                     AddAccount();
                     break;
                 case 1:
-                    //bankomat.Menu();
+                    DellAccount();
                     break;
                 case 2:
                     return;
