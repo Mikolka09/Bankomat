@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +26,7 @@ namespace Bankomat
         string[] menuApp = { "В банк", "В банкомат", "Выход" };
         public void MainMenu()
         {
+            bank.LoadFile();
             while (true)
             {
                 Console.Clear();
@@ -84,7 +90,7 @@ namespace Bankomat
         public void MainMenu(Bank bank)
         {
             this.bank = bank;
-
+            bank.LoadFile();
             Account acc = EnterAcc();
             if (acc != null)
             {
@@ -122,9 +128,11 @@ namespace Bankomat
                 {
                     case 0:
                         acc.Withdraw();
+                        bank.SaveFile();
                         break;
                     case 1:
                         acc.addSum();
+                        bank.SaveFile();
                         break;
                     case 2:
                         acc.GetBalance();
@@ -142,7 +150,7 @@ namespace Bankomat
     {
         int countAcc = 0;
         Account[] accounts;
-        string[] menuBank = { "Открыть счет", "Закрыть счет", "Выход" };
+        string[] menuBank = { "Открыть счет", "Закрыть счет", "Печать счетов", "Выход" };
 
         public Account checkAcc(int numAcc)
         {
@@ -166,24 +174,33 @@ namespace Bankomat
 
             Console.WriteLine($"Account Number: {accNum}  PIN: {pin}");
             Console.Read();
+            SaveFile();
         }
 
         public void DellAccount()
         {
+            Console.Clear();
             Console.WriteLine("Введите номер счет для закрытия: ");
             int acc = int.Parse(Console.ReadLine());
+            Account[] newAcc = new Account[accounts.Length - 1];
+            int del = 0;
             for (int i = 0; i < accounts.Length; i++)
             {
                 if (accounts[i].Acc == acc)
-                {
-                    accounts[i] = null;
-                    Console.WriteLine("Номер счета закрыт!!!");
-                }
-                else
-                {
-                    Console.WriteLine("Такого счет нет!!!");
-                }
+                    del = i;
             }
+            for (int i = 0; i < del; i++)
+            {
+                newAcc[i] = accounts[i];
+            }
+            for (int i = del; i < newAcc.Length; i++)
+            {
+                newAcc[i] = accounts[i + 1];
+            }
+            accounts = newAcc;
+            Console.WriteLine();
+            Console.WriteLine("Номер счета закрыт!!!");
+            SaveFile();
         }
 
         public void MainMenu()
@@ -199,14 +216,63 @@ namespace Bankomat
                     DellAccount();
                     break;
                 case 2:
+                    Print();
+                    break;
+                case 3:
                     return;
                 default:
                     break;
             }
         }
+
+        public void SaveFile()
+        {
+            BinaryFormatter formater = new BinaryFormatter();
+            using (FileStream fs = new FileStream("accounts.data", FileMode.Create))
+            {
+                formater.Serialize(fs, this.accounts);
+            }
+        }
+
+        public void LoadFile()
+        {
+            if (System.IO.File.Exists("accounts.data"))
+            {
+                BinaryFormatter formater = new BinaryFormatter();
+                using (FileStream fs = new FileStream("accounts.data", FileMode.OpenOrCreate))
+                {
+                    this.accounts = (Account[])formater.Deserialize(fs);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Такого файла нет!");
+            }
+        }
+
+        public void Print()
+        {
+            Console.Clear();
+            Console.WriteLine("\tБАЗА СЧЕТОВ БАНКА");
+            Console.WriteLine("\t-----------------");
+            Console.WriteLine();
+            Console.WriteLine("\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550" +
+                              "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557");
+            Console.WriteLine("\u2551 Account \u2551 PIN \u2551 Summa \u2551");
+            Console.WriteLine("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550" +
+                              "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+            for (int i = 0; i < this.accounts.Length; i++)
+            {
+                Console.WriteLine($"\u2551 {accounts[i].Acc} \u2551 {accounts[i].PIN} \u2551 {accounts[i].Summa} \u2551");
+                Console.WriteLine("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550" +
+                                  "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+            }
+
+            Console.ReadLine();
+        }
     }
 
-
+    [Serializable]
     class Account
     {
         public int Acc { get; private set; }
@@ -242,5 +308,9 @@ namespace Bankomat
             int sum = int.Parse(str);
             Summa += sum;
         }
+
+
+
+
     }
 }
